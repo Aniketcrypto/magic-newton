@@ -70,7 +70,7 @@ def fetch_otp(email_address, email_password):
         mail.login(email_address, email_password)
         mail.select("inbox")
         
-        status, messages = mail.search(None, '(UNSEEN FROM "noreply@trymagic.com")')
+        status, messages = mail.search(None, 'FROM "noreply@trymagic.com"')
         if messages[0]:
             for num in messages[0].split():
                 status, msg_data = mail.fetch(num, "(RFC822)")
