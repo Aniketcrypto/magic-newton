@@ -10,21 +10,13 @@ email_file_path = "/root/magicnewton/email.txt"
 # Email and OTP handling
 IMAP_SERVER = "imap.gmail.com"
 
-# Verified domain for Magic authentication
-DOMAIN = "magicnewton.com"
-
-# Updated headers with production domain
+# Magic API configuration
 headers = {
     "Content-Type": "application/json",
     "X-Magic-API-Key": "pk_live_C1819D59F5DFB8E2",
-    "Accept": "application/json, text/plain, */*",
-    "Accept-Language": "en_US",
+    "Accept": "application/json",
     "Origin": "https://magicnewton.com",
-    "Referer": "https://magicnewton.com/",
-    "X-Magic-Sdk": "magic-sdk-js",
-    "X-Magic-Sdk-Version": "21.0.0",
-    "Host": "api.magic.link",
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    "Referer": "https://magicnewton.com/"
 }
 
 otp_request_url = "https://api.magic.link/v2/auth/user/login/email_otp/start"
@@ -48,26 +40,7 @@ def send_otp_request(email):
     """Send OTP request to the server."""
     data = {
         "email": email,
-        "showUI": False,
-        "cryptoWalletType": "METAMASK",
-        "network": "mainnet",
-        "configuration": {
-            "redirectURI": "https://magicnewton.com/callback",
-            "walletConnectorConfiguration": {
-                "networkConfiguration": {
-                    "chainId": "0x1",
-                }
-            }
-        },
-        "deviceInfo": {
-            "sdk": "magic-sdk-js",
-            "sdkVersion": "21.0.0",
-            "platform": "web",
-            "platformVersion": "web",
-            "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-            "method": "magic_downloadable",
-            "language": "en-US"
-        }
+        "request_origin_message": "1LK0vb5-f1tlrTpTi0ZMLBxHysd2wqLd3Ihxuj5MZaqz3Y~bTKre5_br5BGi4ORuQkwiDAIUzXadiiPACmzof~PQGxDetncw0UiQ.KDSHYB_wlRVrwWSrBEZFSpMfX51"
     }
     
     try:
@@ -93,7 +66,6 @@ def fetch_otp(email_address, email_password):
         mail.login(email_address, email_password)
         mail.select("inbox")
         
-        # Wait a bit for the email to arrive and then search
         status, messages = mail.search(None, '(UNSEEN FROM "noreply@trymagic.com")')
         if messages[0]:
             for num in messages[0].split():
@@ -116,23 +88,7 @@ def verify_otp(email, otp):
     data = {
         "email": email,
         "otp": otp,
-        "configuration": {
-            "redirectURI": "https://magicnewton.com/callback",
-            "walletConnectorConfiguration": {
-                "networkConfiguration": {
-                    "chainId": "0x1",
-                }
-            }
-        },
-        "deviceInfo": {
-            "sdk": "magic-sdk-js",
-            "sdkVersion": "21.0.0",
-            "platform": "web",
-            "platformVersion": "web",
-            "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-            "method": "magic_downloadable",
-            "language": "en-US"
-        }
+        "request_origin_message": "1LK0vb5-f1tlrTpTi0ZMLBxHysd2wqLd3Ihxuj5MZaqz3Y~bTKre5_br5BGi4ORuQkwiDAIUzXadiiPACmzof~PQGxDetncw0UiQ.KDSHYB_wlRVrwWSrBEZFSpMfX51"
     }
     
     try:
