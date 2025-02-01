@@ -3,6 +3,7 @@ import imaplib
 import email
 import re
 import os
+import time
 
 # File paths
 email_file_path = "/root/magicnewton/email.txt"
@@ -62,6 +63,9 @@ def send_otp_request(email):
 def fetch_otp(email_address, email_password):
     """Fetch OTP from the email inbox."""
     try:
+        print("Waiting for OTP email...")
+        time.sleep(10)  # Wait for 10 seconds before fetching OTP
+
         mail = imaplib.IMAP4_SSL(IMAP_SERVER)
         mail.login(email_address, email_password)
         mail.select("inbox")
