@@ -77,7 +77,7 @@ def fetch_otp(email_address, email_password):
                 msg = email.message_from_bytes(msg_data[0][1])
                 if msg.is_multipart():
                     for part in msg.walk():
-                        if part.get_content_type() == "text/plain":
+                        if part.get_content_type() == "text/plain" or part.get_content_type() == "text/html":
                             body = part.get_payload(decode=True).decode()
                             otp_match = re.search(r"\b\d{6}\b", body)
                             if otp_match:
