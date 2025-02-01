@@ -20,7 +20,7 @@ headers = {
 }
 
 otp_request_url = "https://api.magic.link/v2/auth/user/login/email_otp/start"
-otp_verification_url = "https://api.magic.link/v2/auth/user/login/email_otp/verify"
+otp_verification_url = "https://api.magic.link/v1/auth/user/login/email_otp/verify"
 
 def read_email_credentials(file_path):
     """Reads email:password from the specified file."""
