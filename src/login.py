@@ -1,17 +1,17 @@
-import requests
+import sys
 import os
-import time
+import requests
+import pickle
 from email_otp_auth import read_email_credentials, fetch_otp, verify_otp
+
+# Ensure the script can access email_otp_auth.py from the parent directory
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 # File paths
 email_file_path = "/root/magicnewton/email.txt"
-cookie_file_path = "/root/magicnewton/cookies.txt"
+cookies_file_path = "/root/magicnewton/cookies.pkl"
 
-# API Endpoints
-otp_request_url = "https://api.magic.link/v2/auth/user/login/email_otp/start"
-otp_verification_url = "https://api.magic.link/v1/auth/user/login/email_otp/verify"
-
-# Headers
+# Magic API configuration
 headers = {
     "Content-Type": "application/json",
     "X-Magic-API-Key": "pk_live_C1819D59F5DFB8E2",
@@ -20,32 +20,41 @@ headers = {
     "Referer": "https://magicnewton.com/"
 }
 
+otp_request_url = "https://api.magic.link/v2/auth/user/login/email_otp/start"
+otp_verification_url = "https://api.magic.link/v1/auth/user/login/email_otp/verify"
+
 def send_otp_request(email):
-    """Send OTP request and retrieve request_origin_message."""
-    data = {"email": email}
+    """Send OTP request to the server."""
+    data = {
+        "email": email,
+        "request_origin_message": "1LK0vb5-f1tlrTpTi0ZMLBxHysd2wqLd3Ihxuj5MZaqz3Y~bTKre5_br5BGi4ORuQkwiDAIUzXadiiPACmzof~PQGxDetncw0UiQ.KDSHYB_wlRVrwWSrBEZFSpMfX51"
+    }
     
     try:
         response = requests.post(otp_request_url, json=data, headers=headers)
         print(f"Response Status Code: {response.status_code}")
+        print(f"Response Headers: {response.headers}")
         print(f"Response Body: {response.text}")
-
+        
         if response.ok:
-            response_json = response.json()
-            request_origin_message = response_json.get("data", {}).get("request_origin_message", None)
-            login_flow_context = response_json.get("data", {}).get("login_flow_context", None)
-            
-            if not request_origin_message or not login_flow_context:
-                print("Missing request_origin_message or login_flow_context in response.")
-                return None, None
-            
             print("OTP request sent successfully.")
-            return request_origin_message, login_flow_context
+            return response.json()
         else:
             print("Error requesting OTP:", response.text)
-            return None, None
+            return None
     except Exception as e:
         print(f"Exception during OTP request: {str(e)}")
-        return None, None
+        return None
+
+def save_cookies(response):
+    """Save cookies from the response to a file."""
+    if 'set-cookie' in response.headers:
+        cookies = response.cookies
+        with open(cookies_file_path, "wb") as file:
+            pickle.dump(cookies, file)
+        print("Cookies saved successfully.")
+    else:
+        print("No cookies found in response.")
 
 if __name__ == "__main__":
     # Read email credentials
@@ -55,26 +64,25 @@ if __name__ == "__main__":
         exit()
 
     # Step 1: Send OTP request
-    request_origin_message, login_flow_context = send_otp_request(email_address)
-    if not request_origin_message or not login_flow_context:
+    otp_request_response = send_otp_request(email_address)
+    if not otp_request_response or "login_flow_context" not in otp_request_response.get("data", {}):
         print("Failed to initiate OTP request.")
         exit()
+
+    login_flow_context = otp_request_response["data"]["login_flow_context"]
+    print(f"Retrieved login_flow_context: {login_flow_context}")
 
     # Step 2: Fetch OTP from the email
     otp = fetch_otp(email_address, email_password)
     if otp:
         print("Fetched OTP:", otp)
-        
+
         # Step 3: Verify OTP
         verification_response = verify_otp(email_address, otp, login_flow_context)
         if verification_response:
-            print("Authentication successful!")
+            print("Login successful!")
             
-            # Save cookies for future requests
-            cookies = requests.utils.dict_from_cookiejar(verification_response.cookies)
-            with open(cookie_file_path, "w") as f:
-                f.write(str(cookies))
-            print("Cookies saved successfully.")
-
+            # Step 4: Save cookies for future authentication
+            save_cookies(verification_response)
     else:
         print("Failed to fetch OTP.")
