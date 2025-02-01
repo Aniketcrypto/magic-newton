@@ -10,14 +10,19 @@ email_file_path = "/root/magicnewton/email.txt"
 # Email and OTP handling
 IMAP_SERVER = "imap.gmail.com"
 
-# Updated headers with API key
+# Updated headers based on the actual request
 headers = {
     "Content-Type": "application/json",
-    "X-Magic-API-Key": "pk_live_C1819D59F5DFB8E2"
+    "X-Magic-API-Key": "pk_live_C1819D59F5DFB8E2",
+    "Accept": "application/json, text/plain, */*",
+    "Accept-Language": "en_US",
+    "Accept-Encoding": "gzip, deflate, br, zstd",
+    "Origin": "https://auth.magic.link"
 }
 
+# Using the correct endpoints
 otp_request_url = "https://api.magic.link/v2/auth/user/login/email_otp/start"
-otp_verification_url = "https://auth.magic.link/send/rpc/auth/magic_auth_login_with_email_otp/verify_otp_code"
+otp_verification_url = "https://api.magic.link/v2/auth/user/login/email_otp/verify"
 
 def read_email_credentials(file_path):
     """Reads email:password from the specified file."""
@@ -35,12 +40,31 @@ def read_email_credentials(file_path):
 
 def send_otp_request(email):
     """Send OTP request to the server."""
-    data = {"email": email, "showUI": False}
-    response = requests.post(otp_request_url, json=data, headers=headers)
-    if response.ok:
-        print("OTP request sent successfully.")
-    else:
-        print("Error requesting OTP:", response.text)
+    data = {
+        "email": email,
+        "showUI": False,
+        "deviceInfo": {
+            "sdk": "magic-sdk-js",
+            "platform": "web",
+            "userAgent": "Mozilla/5.0"
+        }
+    }
+    
+    try:
+        response = requests.post(otp_request_url, json=data, headers=headers)
+        print(f"Response Status Code: {response.status_code}")
+        print(f"Response Headers: {response.headers}")
+        print(f"Response Body: {response.text}")
+        
+        if response.ok:
+            print("OTP request sent successfully.")
+            return response.json()
+        else:
+            print("Error requesting OTP:", response.text)
+            return None
+    except Exception as e:
+        print(f"Exception during OTP request: {str(e)}")
+        return None
 
 def fetch_otp(email_address, email_password):
     """Fetch OTP from the email inbox."""
@@ -68,12 +92,27 @@ def fetch_otp(email_address, email_password):
 
 def verify_otp(email, otp):
     """Verify the OTP with the server."""
-    data = {"email": email, "otp": otp}
-    response = requests.post(otp_verification_url, json=data, headers=headers)
-    if response.ok:
-        print("OTP verification successful!")
-    else:
-        print("Error verifying OTP:", response.text)
+    data = {
+        "email": email,
+        "otp": otp,
+        "deviceInfo": {
+            "sdk": "magic-sdk-js",
+            "platform": "web",
+            "userAgent": "Mozilla/5.0"
+        }
+    }
+    
+    try:
+        response = requests.post(otp_verification_url, json=data, headers=headers)
+        if response.ok:
+            print("OTP verification successful!")
+            return response.json()
+        else:
+            print("Error verifying OTP:", response.text)
+            return None
+    except Exception as e:
+        print(f"Exception during OTP verification: {str(e)}")
+        return None
 
 if __name__ == "__main__":
     # Read email credentials
@@ -83,13 +122,18 @@ if __name__ == "__main__":
         exit()
     
     # Step 1: Send OTP request
-    send_otp_request(email_address)
+    otp_request_response = send_otp_request(email_address)
+    if not otp_request_response:
+        print("Failed to initiate OTP request.")
+        exit()
     
     # Step 2: Fetch OTP from the email
     otp = fetch_otp(email_address, email_password)
     if otp:
         print("Fetched OTP:", otp)
         # Step 3: Verify OTP
-        verify_otp(email_address, otp)
+        verification_response = verify_otp(email_address, otp)
+        if verification_response:
+            print("Authentication successful!")
     else:
         print("Failed to fetch OTP.")
