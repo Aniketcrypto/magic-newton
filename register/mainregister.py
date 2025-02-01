@@ -72,8 +72,12 @@ def fetch_otp(email_address, email_password):
         mail.select("inbox")
         
         status, messages = mail.search(None, 'FROM "noreply@trymagic.com"')
-        if messages[0]:
-            for num in messages[0].split():
+        email_ids = messages[0].split()
+        
+        if email_ids:
+            email_ids = sorted(email_ids, key=lambda x: int(x), reverse=True)  # Get the latest email first
+            
+            for num in email_ids:
                 status, msg_data = mail.fetch(num, "(RFC822)")
                 msg = email.message_from_bytes(msg_data[0][1])
 
@@ -93,11 +97,13 @@ def fetch_otp(email_address, email_password):
 
                             elif content_type == "text/html" and not otp_code:
                                 soup = BeautifulSoup(body, "html.parser")
-                                text = soup.get_text()
-                                otp_match = re.search(r"\b\d{6}\b", text)
-                                if otp_match:
-                                    otp_code = otp_match.group()
-                                    break
+                                otp_candidates = soup.find_all("span")
+                                for candidate in otp_candidates:
+                                    text = candidate.get_text(strip=True)
+                                    otp_match = re.search(r"\b\d{6}\b", text)
+                                    if otp_match:
+                                        otp_code = otp_match.group()
+                                        break
                 
                 if otp_code:
                     return otp_code
