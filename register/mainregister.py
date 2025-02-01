@@ -4,6 +4,7 @@ import email
 import re
 import os
 import time
+from bs4 import BeautifulSoup
 
 # File paths
 email_file_path = "/root/magicnewton/email.txt"
@@ -91,9 +92,12 @@ def fetch_otp(email_address, email_password):
                                     break  # Stop once OTP is found
 
                             elif content_type == "text/html" and not otp_code:
-                                otp_match = re.search(r"\b\d{6}\b", re.sub(r"<[^>]+>", "", body))  # Remove HTML tags
+                                soup = BeautifulSoup(body, "html.parser")
+                                text = soup.get_text()
+                                otp_match = re.search(r"\b\d{6}\b", text)
                                 if otp_match:
                                     otp_code = otp_match.group()
+                                    break
                 
                 if otp_code:
                     return otp_code
