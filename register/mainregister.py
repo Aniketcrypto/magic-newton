@@ -80,18 +80,20 @@ def fetch_otp(email_address, email_password):
                 if msg.is_multipart():
                     for part in msg.walk():
                         content_type = part.get_content_type()
-                        body = part.get_payload(decode=True).decode(errors="ignore")
+                        payload = part.get_payload(decode=True)
+                        if payload:
+                            body = payload.decode(errors="ignore")
 
-                        if content_type == "text/plain":
-                            otp_match = re.search(r"\b\d{6}\b", body)
-                            if otp_match:
-                                otp_code = otp_match.group()
-                                break  # Stop once OTP is found
+                            if content_type == "text/plain":
+                                otp_match = re.search(r"\b\d{6}\b", body)
+                                if otp_match:
+                                    otp_code = otp_match.group()
+                                    break  # Stop once OTP is found
 
-                        elif content_type == "text/html" and not otp_code:
-                            otp_match = re.search(r"\b\d{6}\b", re.sub(r"<[^>]+>", "", body))  # Remove HTML tags
-                            if otp_match:
-                                otp_code = otp_match.group()
+                            elif content_type == "text/html" and not otp_code:
+                                otp_match = re.search(r"\b\d{6}\b", re.sub(r"<[^>]+>", "", body))  # Remove HTML tags
+                                if otp_match:
+                                    otp_code = otp_match.group()
                 
                 if otp_code:
                     return otp_code
