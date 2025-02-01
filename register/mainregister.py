@@ -5,16 +5,18 @@ import re
 import os
 
 # File paths
-email_file_path = "/magicnewton/email.txt"
+email_file_path = "/root/magicnewton/email.txt"
 
 # Email and OTP handling
 IMAP_SERVER = "imap.gmail.com"
 
+# Updated headers with API key
 headers = {
     "Content-Type": "application/json",
+    "X-Magic-API-Key": "pk_live_C1819D59F5DFB8E2"
 }
 
-otp_request_url = "https://auth.magic.link/send/rpc/auth/magic_auth_login_with_email_otp"
+otp_request_url = "https://api.magic.link/v2/auth/user/login/email_otp/start"
 otp_verification_url = "https://auth.magic.link/send/rpc/auth/magic_auth_login_with_email_otp/verify_otp_code"
 
 def read_email_credentials(file_path):
@@ -31,7 +33,6 @@ def read_email_credentials(file_path):
     print("No valid email credentials found.")
     return None, None
 
-
 def send_otp_request(email):
     """Send OTP request to the server."""
     data = {"email": email, "showUI": False}
@@ -41,7 +42,6 @@ def send_otp_request(email):
     else:
         print("Error requesting OTP:", response.text)
 
-
 def fetch_otp(email_address, email_password):
     """Fetch OTP from the email inbox."""
     try:
@@ -50,12 +50,10 @@ def fetch_otp(email_address, email_password):
         mail.select("inbox")
         
         status, messages = mail.search(None, '(UNSEEN FROM "noreply@trymagic.com")')
-
         if messages[0]:
             for num in messages[0].split():
                 status, msg_data = mail.fetch(num, "(RFC822)")
                 msg = email.message_from_bytes(msg_data[0][1])
-
                 if msg.is_multipart():
                     for part in msg.walk():
                         if part.get_content_type() == "text/plain":
@@ -68,7 +66,6 @@ def fetch_otp(email_address, email_password):
         print("Error fetching OTP:", e)
     return None
 
-
 def verify_otp(email, otp):
     """Verify the OTP with the server."""
     data = {"email": email, "otp": otp}
@@ -78,21 +75,18 @@ def verify_otp(email, otp):
     else:
         print("Error verifying OTP:", response.text)
 
-
 if __name__ == "__main__":
     # Read email credentials
     email_address, email_password = read_email_credentials(email_file_path)
-
     if not email_address or not email_password:
         print("Please provide valid email credentials.")
         exit()
-
+    
     # Step 1: Send OTP request
     send_otp_request(email_address)
-
+    
     # Step 2: Fetch OTP from the email
     otp = fetch_otp(email_address, email_password)
-
     if otp:
         print("Fetched OTP:", otp)
         # Step 3: Verify OTP
