@@ -17,11 +17,15 @@ IMAP_SERVER = "imap.gmail.com"
 
 # Magic API configuration
 headers = {
-    "Content-Type": "application/json;charset=UTF-8",
-    "Accept": "application/json, text/plain, */*",
-    "Accept-Encoding": "gzip, deflate, br, zstd",
-    "Accept-Language": "en_US"
+    "Content-Type": "application/json",
+    "X-Magic-API-Key": "pk_live_C1819D59F5DFB8E2",
+    "Accept": "application/json",
+    "Origin": "https://magicnewton.com",
+    "Referer": "https://magicnewton.com/",
+    "X-Magic-Sdk": "magic-sdk-js",
+    "X-Magic-Sdk-Version": "7.0.0"
 }
+
 
 otp_request_url = "https://api.magic.link/v2/auth/user/login/email_otp/start"
 otp_verification_url = "https://api.magic.link/v1/auth/user/login/email_otp/verify"
