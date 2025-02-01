@@ -113,12 +113,12 @@ def fetch_otp(email_address, email_password):
         print("Error fetching OTP:", e)
     return None
 
-def verify_otp(email, otp):
+def verify_otp(email, otp, login_flow_context):
     """Verify the OTP with the server."""
     data = {
         "email": email,
-        "otp": otp,
-        "request_origin_message": "1LK0vb5-f1tlrTpTi0ZMLBxHysd2wqLd3Ihxuj5MZaqz3Y~bTKre5_br5BGi4ORuQkwiDAIUzXadiiPACmzof~PQGxDetncw0UiQ.KDSHYB_wlRVrwWSrBEZFSpMfX51"
+        "one_time_code": otp,
+        "login_flow_context": login_flow_context
     }
     
     try:
@@ -142,16 +142,19 @@ if __name__ == "__main__":
     
     # Step 1: Send OTP request
     otp_request_response = send_otp_request(email_address)
-    if not otp_request_response:
+    if not otp_request_response or "login_flow_context" not in otp_request_response.get("data", {}):
         print("Failed to initiate OTP request.")
         exit()
+    
+    login_flow_context = otp_request_response["data"]["login_flow_context"]
+    print(f"Retrieved login_flow_context: {login_flow_context}")
     
     # Step 2: Fetch OTP from the email
     otp = fetch_otp(email_address, email_password)
     if otp:
         print("Fetched OTP:", otp)
         # Step 3: Verify OTP
-        verification_response = verify_otp(email_address, otp)
+        verification_response = verify_otp(email_address, otp, login_flow_context)
         if verification_response:
             print("Authentication successful!")
     else:
