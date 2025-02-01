@@ -5,7 +5,7 @@ import re
 import os
 
 # File paths
-email_file_path = "magicnewton/email.txt"
+email_file_path = "~/magicnewton/email.txt"
 
 # Email and OTP handling
 IMAP_SERVER = "imap.gmail.com"
