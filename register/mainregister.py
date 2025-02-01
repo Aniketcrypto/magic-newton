@@ -75,13 +75,27 @@ def fetch_otp(email_address, email_password):
             for num in messages[0].split():
                 status, msg_data = mail.fetch(num, "(RFC822)")
                 msg = email.message_from_bytes(msg_data[0][1])
+
+                otp_code = None
                 if msg.is_multipart():
                     for part in msg.walk():
-                        if part.get_content_type() == "text/plain" or part.get_content_type() == "text/html":
-                            body = part.get_payload(decode=True).decode()
+                        content_type = part.get_content_type()
+                        body = part.get_payload(decode=True).decode(errors="ignore")
+
+                        if content_type == "text/plain":
                             otp_match = re.search(r"\b\d{6}\b", body)
                             if otp_match:
-                                return otp_match.group()
+                                otp_code = otp_match.group()
+                                break  # Stop once OTP is found
+
+                        elif content_type == "text/html" and not otp_code:
+                            otp_match = re.search(r"\b\d{6}\b", re.sub(r"<[^>]+>", "", body))  # Remove HTML tags
+                            if otp_match:
+                                otp_code = otp_match.group()
+                
+                if otp_code:
+                    return otp_code
+
         print("No OTP found.")
     except Exception as e:
         print("Error fetching OTP:", e)
